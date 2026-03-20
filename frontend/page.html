@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cuisine CRUD</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+      max-width: 900px;
+    }
+
+    h1, h2 {
+      margin-bottom: 10px;
+    }
+
+    .section {
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 8px;
+    }
+
+    input {
+      padding: 8px;
+      margin: 5px 5px 5px 0;
+      width: 220px;
+    }
+
+    button {
+      padding: 8px 14px;
+      margin: 5px 5px 5px 0;
+      cursor: pointer;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 15px;
+    }
+
+    th, td {
+      border: 1px solid #999;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background: #f2f2f2;
+    }
+
+    #message {
+      margin: 10px 0;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Little Chef - Cuisine CRUD</h1>
+
+  <div id="message"></div>
+
+  <div class="section">
+    <h2>Search Cuisine</h2>
+    <input type="text" id="searchInput" placeholder="Enter cuisine name" />
+    <button onclick="loadCuisines()">Search</button>
+    <button onclick="resetSearch()">Show All</button>
+  </div>
+
+  <div class="section">
+    <h2>Insert Cuisine</h2>
+    <input type="text" id="insertName" placeholder="New cuisine name" />
+    <button onclick="insertCuisine()">Insert</button>
+  </div>
+
+  <div class="section">
+    <h2>Update Cuisine</h2>
+    <input type="number" id="updateId" placeholder="Cuisine ID" />
+    <input type="text" id="updateName" placeholder="New cuisine name" />
+    <button onclick="updateCuisine()">Update</button>
+  </div>
+
+  <div class="section">
+    <h2>Delete Cuisine</h2>
+    <input type="number" id="deleteId" placeholder="Cuisine ID" />
+    <button onclick="deleteCuisine()">Delete</button>
+  </div>
+
+  <div class="section">
+    <h2>Cuisine Table</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Cuisine ID</th>
+          <th>Cuisine Name</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const API = 'http://localhost:3001';
+
+    function showMessage(msg, isError = false) {
+      const messageDiv = document.getElementById('message');
+      messageDiv.textContent = msg;
+      messageDiv.style.color = isError ? 'red' : 'green';
+    }
+
+    async function loadCuisines() {
+      try {
+        const keyword = document.getElementById('searchInput').value.trim();
+        let url = API + '/cuisines';
+
+        if (keyword) {
+          url += `?name=${encodeURIComponent(keyword)}`;
+        }
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        const tableBody = document.getElementById('tableBody');
+        tableBody.innerHTML = '';
+
+        data.forEach(item => {
+          const row = `
+            <tr>
+              <td>${item.cuisine_id}</td>
+              <td>${item.cuisine_name}</td>
+            </tr>
+          `;
+          tableBody.innerHTML += row;
+        });
+
+        showMessage('Cuisine data loaded successfully.');
+      } catch (error) {
+        showMessage('Failed to load cuisine data.', true);
+        console.error(error);
+      }
+    }
+
+    function resetSearch() {
+      document.getElementById('searchInput').value = '';
+      loadCuisines();
+    }
+
+    async function insertCuisine() {
+      try {
+        const cuisineName = document.getElementById('insertName').value.trim();
+
+        if (!cuisineName) {
+          showMessage('Please enter a cuisine name to insert.', true);
+          return;
+        }
+
+        const response = await fetch(API + '/cuisines', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ cuisine_name: cuisineName })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          showMessage(result.error || 'Insert failed.', true);
+          return;
+        }
+
+        showMessage('Cuisine inserted successfully.');
+        document.getElementById('insertName').value = '';
+        loadCuisines();
+      } catch (error) {
+        showMessage('Insert failed.', true);
+        console.error(error);
+      }
+    }
+
+    async function updateCuisine() {
+      try {
+        const id = document.getElementById('updateId').value.trim();
+        const cuisineName = document.getElementById('updateName').value.trim();
+
+        if (!id || !cuisineName) {
+          showMessage('Please enter both cuisine ID and new cuisine name.', true);
+          return;
+        }
+
+        const response = await fetch(`${API}/cuisines/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ cuisine_name: cuisineName })
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          showMessage(result.error || 'Update failed.', true);
+          return;
+        }
+
+        showMessage('Cuisine updated successfully.');
+        document.getElementById('updateId').value = '';
+        document.getElementById('updateName').value = '';
+        loadCuisines();
+      } catch (error) {
+        showMessage('Update failed.', true);
+        console.error(error);
+      }
+    }
+
+    async function deleteCuisine() {
+      try {
+        const id = document.getElementById('deleteId').value.trim();
+
+        if (!id) {
+          showMessage('Please enter a cuisine ID to delete.', true);
+          return;
+        }
+
+        const response = await fetch(`${API}/cuisines/${id}`, {
+          method: 'DELETE'
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          showMessage(result.error || 'Delete failed.', true);
+          return;
+        }
+
+        showMessage('Cuisine deleted successfully.');
+        document.getElementById('deleteId').value = '';
+        loadCuisines();
+      } catch (error) {
+        showMessage('Delete failed.', true);
+        console.error(error);
+      }
+    }
+
+    loadCuisines();
+  </script>
+</body>
+</html>
