@@ -2,247 +2,1038 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Cuisine CRUD</title>
+  <title>Little Chef CRUD Dashboard</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 30px;
-      max-width: 900px;
+      margin: 24px;
+      background: #fafafa;
+      color: #222;
     }
 
-    h1, h2 {
-      margin-bottom: 10px;
+    h1 {
+      margin-bottom: 12px;
     }
 
-    .section {
-      border: 1px solid #ccc;
-      padding: 15px;
-      margin-bottom: 20px;
+    h2,
+    h3 {
+      margin: 0 0 10px;
+    }
+
+    #message {
+      margin: 10px 0 20px;
+      font-weight: bold;
+      min-height: 20px;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));
+      gap: 20px;
+    }
+
+    .entity-card {
+      background: #fff;
+      border: 1px solid #d9d9d9;
+      border-radius: 10px;
+      padding: 16px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+    }
+
+    .subsection {
+      border: 1px solid #ececec;
       border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 14px;
+      background: #fcfcfc;
     }
 
-    input {
-      padding: 8px;
-      margin: 5px 5px 5px 0;
-      width: 220px;
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      padding: 8px 10px;
+      font-size: 14px;
+    }
+
+    input,
+    select,
+    textarea {
+      flex: 1 1 180px;
+      border: 1px solid #bfbfbf;
+      border-radius: 6px;
+    }
+
+    input[readonly] {
+      background: #f1f1f1;
+    }
+
+    textarea {
+      min-height: 72px;
+      resize: vertical;
+      width: 100%;
+      box-sizing: border-box;
     }
 
     button {
-      padding: 8px 14px;
-      margin: 5px 5px 5px 0;
+      border: 1px solid #bfbfbf;
+      background: #f5f5f5;
+      border-radius: 6px;
       cursor: pointer;
+    }
+
+    button:hover {
+      background: #ebebeb;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
     }
 
     table {
       border-collapse: collapse;
       width: 100%;
-      margin-top: 15px;
+      margin-top: 12px;
+      font-size: 14px;
     }
 
-    th, td {
-      border: 1px solid #999;
-      padding: 10px;
+    th,
+    td {
+      border: 1px solid #cfcfcf;
+      padding: 8px;
       text-align: left;
+      vertical-align: top;
     }
 
     th {
       background: #f2f2f2;
     }
 
-    #message {
-      margin: 10px 0;
-      font-weight: bold;
+    .action-cell {
+      white-space: nowrap;
+      min-width: 120px;
     }
   </style>
 </head>
 <body>
-  <h1>Little Chef - Cuisine CRUD</h1>
-
+  <h1>Little Chef CRUD Dashboard</h1>
   <div id="message"></div>
 
-  <div class="section">
-    <h2>Search Cuisine</h2>
-    <input type="text" id="searchInput" placeholder="Enter cuisine name" />
-    <button onclick="loadCuisines()">Search</button>
-    <button onclick="resetSearch()">Show All</button>
-  </div>
+  <div class="dashboard">
+    <section class="entity-card">
+      <h2>Users</h2>
 
-  <div class="section">
-    <h2>Insert Cuisine</h2>
-    <input type="text" id="insertName" placeholder="New cuisine name" />
-    <button onclick="insertCuisine()">Insert</button>
-  </div>
+      <div class="subsection">
+        <h3>Search Users</h3>
+        <div class="form-row">
+          <input type="text" id="users-search" placeholder="Enter username" />
+          <button onclick="loadUsers()">Search</button>
+          <button onclick="resetUsersSearch()">Show All</button>
+        </div>
+      </div>
 
-  <div class="section">
-    <h2>Update Cuisine</h2>
-    <input type="number" id="updateId" placeholder="Cuisine ID" />
-    <input type="text" id="updateName" placeholder="New cuisine name" />
-    <button onclick="updateCuisine()">Update</button>
-  </div>
+      <div class="subsection">
+        <h3>Insert User</h3>
+        <div class="form-row">
+          <input type="text" id="users-insert-username" placeholder="Username" />
+          <select id="users-insert-role">
+            <option value="">Select role</option>
+            <option value="admin">admin</option>
+            <option value="chef">chef</option>
+            <option value="user">user</option>
+          </select>
+          <button onclick="insertUser()">Insert</button>
+        </div>
+      </div>
 
-  <div class="section">
-    <h2>Delete Cuisine</h2>
-    <input type="number" id="deleteId" placeholder="Cuisine ID" />
-    <button onclick="deleteCuisine()">Delete</button>
-  </div>
+      <div class="subsection">
+        <h3>Update User</h3>
+        <div class="form-row">
+          <input type="number" id="users-update-id" placeholder="User ID" />
+          <input type="text" id="users-update-username" placeholder="Username" />
+          <select id="users-update-role">
+            <option value="">Select role</option>
+            <option value="admin">admin</option>
+            <option value="chef">chef</option>
+            <option value="user">user</option>
+          </select>
+          <button onclick="updateUser()">Update</button>
+          <button onclick="clearUserUpdate()">Clear</button>
+        </div>
+      </div>
 
-  <div class="section">
-    <h2>Cuisine Table</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Cuisine ID</th>
-          <th>Cuisine Name</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
+      <div class="subsection">
+        <h3>Delete User</h3>
+        <div class="form-row">
+          <input type="number" id="users-delete-id" placeholder="User ID" />
+          <button onclick="deleteUser()">Delete</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>User ID</th>
+              <th>Username</th>
+              <th>Role</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-table"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="entity-card">
+      <h2>Cuisines</h2>
+
+      <div class="subsection">
+        <h3>Search Cuisines</h3>
+        <div class="form-row">
+          <input type="text" id="cuisines-search" placeholder="Enter cuisine name" />
+          <button onclick="loadCuisines()">Search</button>
+          <button onclick="resetCuisineSearch()">Show All</button>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Insert Cuisine</h3>
+        <div class="form-row">
+          <input type="text" id="cuisines-insert-name" placeholder="Cuisine name" />
+          <button onclick="insertCuisine()">Insert</button>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Update Cuisine</h3>
+        <div class="form-row">
+          <input type="number" id="cuisines-update-id" placeholder="Cuisine ID" />
+          <input type="text" id="cuisines-update-name" placeholder="Cuisine name" />
+          <button onclick="updateCuisine()">Update</button>
+          <button onclick="clearCuisineUpdate()">Clear</button>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Delete Cuisine</h3>
+        <div class="form-row">
+          <input type="number" id="cuisines-delete-id" placeholder="Cuisine ID" />
+          <button onclick="deleteCuisine()">Delete</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Cuisine ID</th>
+              <th>Cuisine Name</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="cuisines-table"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="entity-card">
+      <h2>Recipes</h2>
+
+      <div class="subsection">
+        <h3>Search Recipes</h3>
+        <div class="form-row">
+          <input type="text" id="recipes-search" placeholder="Enter recipe name" />
+          <button onclick="loadRecipes()">Search</button>
+          <button onclick="resetRecipeSearch()">Show All</button>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Insert Recipe</h3>
+        <div class="form-row">
+          <input type="text" id="recipes-insert-name" placeholder="Recipe name" />
+          <select id="recipes-insert-status">
+            <option value="">Select status</option>
+            <option value="in-progress">in-progress</option>
+            <option value="published">published</option>
+            <option value="archived">archived</option>
+          </select>
+          <input type="number" id="recipes-insert-user-id" placeholder="User ID" />
+          <input type="number" id="recipes-insert-cuisine-id" placeholder="Cuisine ID" />
+        </div>
+
+        <div class="form-row">
+          <textarea id="recipes-insert-instruction" placeholder="Instruction"></textarea>
+        </div>
+
+        <div class="form-row">
+          <button onclick="insertRecipe()">Insert</button>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Update Recipe</h3>
+        <div class="form-row">
+          <input type="number" id="recipes-update-id" placeholder="Recipe ID" />
+          <input type="text" id="recipes-update-name" placeholder="Recipe name" />
+          <select id="recipes-update-status">
+            <option value="">Select status</option>
+            <option value="in-progress">in-progress</option>
+            <option value="published">published</option>
+            <option value="archived">archived</option>
+          </select>
+          <input type="number" id="recipes-update-user-id" placeholder="User ID" />
+          <input type="number" id="recipes-update-cuisine-id" placeholder="Cuisine ID" />
+        </div>
+
+        <div class="form-row">
+          <textarea id="recipes-update-instruction" placeholder="Instruction"></textarea>
+        </div>
+
+        <div class="form-row">
+          <button onclick="updateRecipe()">Update</button>
+          <button onclick="clearRecipeUpdate()">Clear</button>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Delete Recipe</h3>
+        <div class="form-row">
+          <input type="number" id="recipes-delete-id" placeholder="Recipe ID" />
+          <button onclick="deleteRecipe()">Delete</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Recipe ID</th>
+              <th>Name</th>
+              <th>Status</th>
+              <th>User</th>
+              <th>Cuisine</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="recipes-table"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="entity-card">
+      <h2>Ingredients</h2>
+
+      <div class="subsection">
+        <h3>Search Ingredients</h3>
+        <div class="form-row">
+          <input type="text" id="ingredients-search" placeholder="Enter ingredient name" />
+          <button onclick="loadIngredients()">Search</button>
+          <button onclick="resetIngredientSearch()">Show All</button>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Insert Ingredient</h3>
+        <div class="form-row">
+          <input type="text" id="ingredients-insert-name" placeholder="Ingredient name" />
+          <button onclick="insertIngredient()">Insert</button>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Update Ingredient</h3>
+        <div class="form-row">
+          <input type="number" id="ingredients-update-id" placeholder="Ingredient ID" />
+          <input type="text" id="ingredients-update-name" placeholder="Ingredient name" />
+          <button onclick="updateIngredient()">Update</button>
+          <button onclick="clearIngredientUpdate()">Clear</button>
+        </div>
+      </div>
+
+      <div class="subsection">
+        <h3>Delete Ingredient</h3>
+        <div class="form-row">
+          <input type="number" id="ingredients-delete-id" placeholder="Ingredient ID" />
+          <button onclick="deleteIngredient()">Delete</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Ingredient ID</th>
+              <th>Ingredient Name</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ingredients-table"></tbody>
+        </table>
+      </div>
+    </section>
   </div>
 
   <script>
     const API = 'http://localhost:3001';
+    const msg = document.getElementById('message');
 
-    function showMessage(msg, isError = false) {
-      const messageDiv = document.getElementById('message');
-      messageDiv.textContent = msg;
-      messageDiv.style.color = isError ? 'red' : 'green';
+    const $ = (id) => document.getElementById(id);
+
+    const esc = (v) =>
+      String(v)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+
+    const say = (t, e = false) => {
+      msg.textContent = t;
+      msg.style.color = e ? 'red' : 'green';
+    };
+
+    const empty = (id, c, t) => {
+      $(id).innerHTML = `<tr><td colspan="${c}">${t}</td></tr>`;
+    };
+
+    async function api(url, options = {}) {
+      const r = await fetch(url, options);
+      const d = await r.json();
+
+      if (!r.ok) {
+        throw new Error(d.error || 'Request failed.');
+      }
+
+      return d;
+    }
+
+    function onEnter(id, fn) {
+      $(id).addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          fn();
+        }
+      });
+    }
+
+    function clearUserUpdate() {
+      $('users-update-id').value = '';
+      $('users-update-username').value = '';
+      $('users-update-role').value = '';
+    }
+
+    function fillUserForm(id, username, role) {
+      $('users-update-id').value = id;
+      $('users-update-username').value = username;
+      $('users-update-role').value = role;
+      $('users-delete-id').value = id;
+      say(`Loaded user #${id} into the update form.`);
+    }
+
+    async function loadUsers() {
+      try {
+        const q = $('users-search').value.trim();
+        const data = await api(
+          `${API}/users${q ? `?name=${encodeURIComponent(q)}` : ''}`
+        );
+
+        $('users-table').innerHTML = '';
+
+        if (!data.length) {
+          empty('users-table', 4, 'No users found.');
+          return;
+        }
+
+        data.forEach((item) => {
+          $('users-table').innerHTML += `
+            <tr>
+              <td>${item.user_id}</td>
+              <td>${esc(item.username)}</td>
+              <td>${esc(item.role)}</td>
+              <td class="action-cell">
+                <button onclick="fillUserForm(${item.user_id}, ${JSON.stringify(item.username)}, ${JSON.stringify(item.role)})">
+                  Edit
+                </button>
+                <button onclick="deleteUser(${item.user_id})">Delete</button>
+              </td>
+            </tr>
+          `;
+        });
+      } catch (err) {
+        empty('users-table', 4, 'Failed to load users.');
+        console.error(err);
+      }
+    }
+
+    function resetUsersSearch() {
+      $('users-search').value = '';
+      loadUsers();
+    }
+
+    async function insertUser() {
+      try {
+        const username = $('users-insert-username').value.trim();
+        const role = $('users-insert-role').value;
+
+        if (!username || !role) {
+          say('Please enter username and role for the user.', true);
+          return;
+        }
+
+        await api(`${API}/users`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, role })
+        });
+
+        $('users-insert-username').value = '';
+        $('users-insert-role').value = '';
+        say('User inserted successfully.');
+        loadUsers();
+      } catch (err) {
+        say(err.message, true);
+      }
+    }
+
+    async function updateUser() {
+      try {
+        const id = $('users-update-id').value.trim();
+        const username = $('users-update-username').value.trim();
+        const role = $('users-update-role').value;
+
+        if (!id || !username || !role) {
+          say('Please complete the user update form.', true);
+          return;
+        }
+
+        const result = await api(`${API}/users/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, role })
+        });
+
+        if (result.affectedRows === 0) {
+          say('No user was updated. Check the user ID.', true);
+          return;
+        }
+
+        clearUserUpdate();
+        say('User updated successfully.');
+        loadUsers();
+      } catch (err) {
+        say(err.message, true);
+      }
+    }
+
+    async function deleteUser(selectedId) {
+      try {
+        const id = String(selectedId || $('users-delete-id').value).trim();
+
+        if (!id) {
+          say('Please enter a user ID to delete.', true);
+          return;
+        }
+
+        if (!window.confirm(`Delete user ID ${id}?`)) {
+          return;
+        }
+
+        const result = await api(`${API}/users/${id}`, {
+          method: 'DELETE'
+        });
+
+        if (result.affectedRows === 0) {
+          say('No user was deleted. Check the user ID.', true);
+          return;
+        }
+
+        $('users-delete-id').value = '';
+
+        if ($('users-update-id').value === id) {
+          clearUserUpdate();
+        }
+
+        say('User deleted successfully.');
+        loadUsers();
+      } catch (err) {
+        say(err.message, true);
+      }
+    }
+
+    function clearCuisineUpdate() {
+      $('cuisines-update-id').value = '';
+      $('cuisines-update-name').value = '';
+    }
+
+    function fillCuisineForm(id, name) {
+      $('cuisines-update-id').value = id;
+      $('cuisines-update-name').value = name;
+      $('cuisines-delete-id').value = id;
+      say(`Loaded cuisine #${id} into the update form.`);
     }
 
     async function loadCuisines() {
       try {
-        const keyword = document.getElementById('searchInput').value.trim();
-        let url = API + '/cuisines';
+        const q = $('cuisines-search').value.trim();
+        const data = await api(
+          `${API}/cuisines${q ? `?name=${encodeURIComponent(q)}` : ''}`
+        );
 
-        if (keyword) {
-          url += `?name=${encodeURIComponent(keyword)}`;
+        $('cuisines-table').innerHTML = '';
+
+        if (!data.length) {
+          empty('cuisines-table', 3, 'No cuisines found.');
+          return;
         }
 
-        const response = await fetch(url);
-        const data = await response.json();
-
-        const tableBody = document.getElementById('tableBody');
-        tableBody.innerHTML = '';
-
-        data.forEach(item => {
-          const row = `
+        data.forEach((item) => {
+          $('cuisines-table').innerHTML += `
             <tr>
               <td>${item.cuisine_id}</td>
-              <td>${item.cuisine_name}</td>
+              <td>${esc(item.cuisine_name)}</td>
+              <td class="action-cell">
+                <button onclick="fillCuisineForm(${item.cuisine_id}, ${JSON.stringify(item.cuisine_name)})">
+                  Edit
+                </button>
+                <button onclick="deleteCuisine(${item.cuisine_id})">Delete</button>
+              </td>
             </tr>
           `;
-          tableBody.innerHTML += row;
         });
-
-        showMessage('Cuisine data loaded successfully.');
-      } catch (error) {
-        showMessage('Failed to load cuisine data.', true);
-        console.error(error);
+      } catch (err) {
+        empty('cuisines-table', 3, 'Failed to load cuisines.');
+        console.error(err);
       }
     }
 
-    function resetSearch() {
-      document.getElementById('searchInput').value = '';
+    function resetCuisineSearch() {
+      $('cuisines-search').value = '';
       loadCuisines();
     }
 
     async function insertCuisine() {
       try {
-        const cuisineName = document.getElementById('insertName').value.trim();
+        const cuisine_name = $('cuisines-insert-name').value.trim();
 
-        if (!cuisineName) {
-          showMessage('Please enter a cuisine name to insert.', true);
+        if (!cuisine_name) {
+          say('Please enter a cuisine name.', true);
           return;
         }
 
-        const response = await fetch(API + '/cuisines', {
+        await api(`${API}/cuisines`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ cuisine_name: cuisineName })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cuisine_name })
         });
 
-        const result = await response.json();
-
-        if (!response.ok) {
-          showMessage(result.error || 'Insert failed.', true);
-          return;
-        }
-
-        showMessage('Cuisine inserted successfully.');
-        document.getElementById('insertName').value = '';
+        $('cuisines-insert-name').value = '';
+        say('Cuisine inserted successfully.');
         loadCuisines();
-      } catch (error) {
-        showMessage('Insert failed.', true);
-        console.error(error);
+      } catch (err) {
+        say(err.message, true);
       }
     }
 
     async function updateCuisine() {
       try {
-        const id = document.getElementById('updateId').value.trim();
-        const cuisineName = document.getElementById('updateName').value.trim();
+        const id = $('cuisines-update-id').value.trim();
+        const cuisine_name = $('cuisines-update-name').value.trim();
 
-        if (!id || !cuisineName) {
-          showMessage('Please enter both cuisine ID and new cuisine name.', true);
+        if (!id || !cuisine_name) {
+          say('Please complete the cuisine update form.', true);
           return;
         }
 
-        const response = await fetch(`${API}/cuisines/${id}`, {
+        const result = await api(`${API}/cuisines/${id}`, {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ cuisine_name: cuisineName })
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cuisine_name })
         });
 
-        const result = await response.json();
-
-        if (!response.ok) {
-          showMessage(result.error || 'Update failed.', true);
+        if (result.affectedRows === 0) {
+          say('No cuisine was updated. Check the cuisine ID.', true);
           return;
         }
 
-        showMessage('Cuisine updated successfully.');
-        document.getElementById('updateId').value = '';
-        document.getElementById('updateName').value = '';
+        clearCuisineUpdate();
+        say('Cuisine updated successfully.');
         loadCuisines();
-      } catch (error) {
-        showMessage('Update failed.', true);
-        console.error(error);
+      } catch (err) {
+        say(err.message, true);
       }
     }
 
-    async function deleteCuisine() {
+    async function deleteCuisine(selectedId) {
       try {
-        const id = document.getElementById('deleteId').value.trim();
+        const id = String(selectedId || $('cuisines-delete-id').value).trim();
 
         if (!id) {
-          showMessage('Please enter a cuisine ID to delete.', true);
+          say('Please enter a cuisine ID to delete.', true);
           return;
         }
 
-        const response = await fetch(`${API}/cuisines/${id}`, {
+        if (!window.confirm(`Delete cuisine ID ${id}?`)) {
+          return;
+        }
+
+        const result = await api(`${API}/cuisines/${id}`, {
           method: 'DELETE'
         });
 
-        const result = await response.json();
-
-        if (!response.ok) {
-          showMessage(result.error || 'Delete failed.', true);
+        if (result.affectedRows === 0) {
+          say('No cuisine was deleted. Check the cuisine ID.', true);
           return;
         }
 
-        showMessage('Cuisine deleted successfully.');
-        document.getElementById('deleteId').value = '';
+        $('cuisines-delete-id').value = '';
+
+        if ($('cuisines-update-id').value === id) {
+          clearCuisineUpdate();
+        }
+
+        say('Cuisine deleted successfully.');
         loadCuisines();
-      } catch (error) {
-        showMessage('Delete failed.', true);
-        console.error(error);
+      } catch (err) {
+        say(err.message, true);
       }
     }
 
-    loadCuisines();
+    function clearRecipeInsert() {
+      $('recipes-insert-name').value = '';
+      $('recipes-insert-instruction').value = '';
+      $('recipes-insert-status').value = '';
+      $('recipes-insert-user-id').value = '';
+      $('recipes-insert-cuisine-id').value = '';
+    }
+
+    function clearRecipeUpdate() {
+      $('recipes-update-id').value = '';
+      $('recipes-update-name').value = '';
+      $('recipes-update-instruction').value = '';
+      $('recipes-update-status').value = '';
+      $('recipes-update-user-id').value = '';
+      $('recipes-update-cuisine-id').value = '';
+    }
+
+    function readRecipe(prefix) {
+      return {
+        name: $(`recipes-${prefix}-name`).value.trim(),
+        instruction: $(`recipes-${prefix}-instruction`).value.trim(),
+        status: $(`recipes-${prefix}-status`).value,
+        user_id: $(`recipes-${prefix}-user-id`).value.trim(),
+        cuisine_id: $(`recipes-${prefix}-cuisine-id`).value.trim()
+      };
+    }
+
+    function fillRecipeForm(id, name, instruction, status, userId, cuisineId) {
+      $('recipes-update-id').value = id;
+      $('recipes-update-name').value = name;
+      $('recipes-update-instruction').value = instruction;
+      $('recipes-update-status').value = status;
+      $('recipes-update-user-id').value = userId;
+      $('recipes-update-cuisine-id').value = cuisineId;
+      $('recipes-delete-id').value = id;
+      say(`Loaded recipe #${id} into the update form.`);
+    }
+
+    async function loadRecipes() {
+      try {
+        const q = $('recipes-search').value.trim();
+        const data = await api(
+          `${API}/recipes${q ? `?name=${encodeURIComponent(q)}` : ''}`
+        );
+
+        $('recipes-table').innerHTML = '';
+
+        if (!data.length) {
+          empty('recipes-table', 6, 'No recipes found.');
+          return;
+        }
+
+        data.forEach((item) => {
+          $('recipes-table').innerHTML += `
+            <tr>
+              <td>${item.recipe_id}</td>
+              <td>${esc(item.name)}</td>
+              <td>${esc(item.status)}</td>
+              <td>${esc(item.username)}</td>
+              <td>${esc(item.cuisine_name)}</td>
+              <td class="action-cell">
+                <button onclick="fillRecipeForm(${item.recipe_id}, ${JSON.stringify(item.name)}, ${JSON.stringify(item.instruction)}, ${JSON.stringify(item.status)}, ${item.user_id}, ${item.cuisine_id})">
+                  Edit
+                </button>
+                <button onclick="deleteRecipe(${item.recipe_id})">Delete</button>
+              </td>
+            </tr>
+          `;
+        });
+      } catch (err) {
+        empty('recipes-table', 6, 'Failed to load recipes.');
+        console.error(err);
+      }
+    }
+
+    function resetRecipeSearch() {
+      $('recipes-search').value = '';
+      loadRecipes();
+    }
+
+    async function insertRecipe() {
+      try {
+        const payload = readRecipe('insert');
+
+        if (
+          !payload.name ||
+          !payload.instruction ||
+          !payload.status ||
+          !payload.user_id ||
+          !payload.cuisine_id
+        ) {
+          say('Please complete all recipe insert fields.', true);
+          return;
+        }
+
+        await api(`${API}/recipes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        clearRecipeInsert();
+        say('Recipe inserted successfully.');
+        loadRecipes();
+      } catch (err) {
+        say(err.message, true);
+      }
+    }
+
+    async function updateRecipe() {
+      try {
+        const id = $('recipes-update-id').value.trim();
+        const payload = readRecipe('update');
+
+        if (
+          !id ||
+          !payload.name ||
+          !payload.instruction ||
+          !payload.status ||
+          !payload.user_id ||
+          !payload.cuisine_id
+        ) {
+          say('Please complete all recipe update fields.', true);
+          return;
+        }
+
+        const result = await api(`${API}/recipes/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (result.affectedRows === 0) {
+          say('No recipe was updated. Check the recipe ID.', true);
+          return;
+        }
+
+        clearRecipeUpdate();
+        say('Recipe updated successfully.');
+        loadRecipes();
+      } catch (err) {
+        say(err.message, true);
+      }
+    }
+
+    async function deleteRecipe(selectedId) {
+      try {
+        const id = String(selectedId || $('recipes-delete-id').value).trim();
+
+        if (!id) {
+          say('Please enter a recipe ID to delete.', true);
+          return;
+        }
+
+        if (!window.confirm(`Delete recipe ID ${id}?`)) {
+          return;
+        }
+
+        const result = await api(`${API}/recipes/${id}`, {
+          method: 'DELETE'
+        });
+
+        if (result.affectedRows === 0) {
+          say('No recipe was deleted. Check the recipe ID.', true);
+          return;
+        }
+
+        $('recipes-delete-id').value = '';
+
+        if ($('recipes-update-id').value === id) {
+          clearRecipeUpdate();
+        }
+
+        say('Recipe deleted successfully.');
+        loadRecipes();
+      } catch (err) {
+        say(err.message, true);
+      }
+    }
+
+    function clearIngredientUpdate() {
+      $('ingredients-update-id').value = '';
+      $('ingredients-update-name').value = '';
+    }
+
+    function fillIngredientForm(id, name) {
+      $('ingredients-update-id').value = id;
+      $('ingredients-update-name').value = name;
+      $('ingredients-delete-id').value = id;
+      say(`Loaded ingredient #${id} into the update form.`);
+    }
+
+    async function loadIngredients() {
+      try {
+        const q = $('ingredients-search').value.trim();
+        const data = await api(
+          `${API}/ingredients${q ? `?name=${encodeURIComponent(q)}` : ''}`
+        );
+
+        $('ingredients-table').innerHTML = '';
+
+        if (!data.length) {
+          empty('ingredients-table', 3, 'No ingredients found.');
+          return;
+        }
+
+        data.forEach((item) => {
+          $('ingredients-table').innerHTML += `
+            <tr>
+              <td>${item.ingredient_id}</td>
+              <td>${esc(item.ingredient_name)}</td>
+              <td class="action-cell">
+                <button onclick="fillIngredientForm(${item.ingredient_id}, ${JSON.stringify(item.ingredient_name)})">
+                  Edit
+                </button>
+                <button onclick="deleteIngredient(${item.ingredient_id})">Delete</button>
+              </td>
+            </tr>
+          `;
+        });
+      } catch (err) {
+        empty('ingredients-table', 3, 'Failed to load ingredients.');
+        console.error(err);
+      }
+    }
+
+    function resetIngredientSearch() {
+      $('ingredients-search').value = '';
+      loadIngredients();
+    }
+
+    async function insertIngredient() {
+      try {
+        const ingredient_name = $('ingredients-insert-name').value.trim();
+
+        if (!ingredient_name) {
+          say('Please enter an ingredient name.', true);
+          return;
+        }
+
+        await api(`${API}/ingredients`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ingredient_name })
+        });
+
+        $('ingredients-insert-name').value = '';
+        say('Ingredient inserted successfully.');
+        loadIngredients();
+      } catch (err) {
+        say(err.message, true);
+      }
+    }
+
+    async function updateIngredient() {
+      try {
+        const id = $('ingredients-update-id').value.trim();
+        const ingredient_name = $('ingredients-update-name').value.trim();
+
+        if (!id || !ingredient_name) {
+          say('Please complete the ingredient update form.', true);
+          return;
+        }
+
+        const result = await api(`${API}/ingredients/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ingredient_name })
+        });
+
+        if (result.affectedRows === 0) {
+          say('No ingredient was updated. Check the ingredient ID.', true);
+          return;
+        }
+
+        clearIngredientUpdate();
+        say('Ingredient updated successfully.');
+        loadIngredients();
+      } catch (err) {
+        say(err.message, true);
+      }
+    }
+
+    async function deleteIngredient(selectedId) {
+      try {
+        const id = String(selectedId || $('ingredients-delete-id').value).trim();
+
+        if (!id) {
+          say('Please enter an ingredient ID to delete.', true);
+          return;
+        }
+
+        if (!window.confirm(`Delete ingredient ID ${id}?`)) {
+          return;
+        }
+
+        const result = await api(`${API}/ingredients/${id}`, {
+          method: 'DELETE'
+        });
+
+        if (result.affectedRows === 0) {
+          say('No ingredient was deleted. Check the ingredient ID.', true);
+          return;
+        }
+
+        $('ingredients-delete-id').value = '';
+
+        if ($('ingredients-update-id').value === id) {
+          clearIngredientUpdate();
+        }
+
+        say('Ingredient deleted successfully.');
+        loadIngredients();
+      } catch (err) {
+        say(err.message, true);
+      }
+    }
+
+    onEnter('users-search', loadUsers);
+    onEnter('cuisines-search', loadCuisines);
+    onEnter('recipes-search', loadRecipes);
+    onEnter('ingredients-search', loadIngredients);
+
+    empty('users-table', 4, 'Click Show All or Search to load users.');
+    empty('cuisines-table', 3, 'Click Show All or Search to load cuisines.');
+    empty('recipes-table', 6, 'Click Show All or Search to load recipes.');
+    empty('ingredients-table', 3, 'Click Show All or Search to load ingredients.');
   </script>
 </body>
 </html>
