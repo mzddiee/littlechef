@@ -140,7 +140,29 @@ INSERT INTO cuisine (cuisine_name) VALUES
 ('Indian'),
 ('Mediterranean'),
 ('Japanese'),
-('French');
+('French'),
+('Thai'),
+('Korean'),
+('Vietnamese'),
+('Spanish'),
+('Greek'),
+('Turkish'),
+('Lebanese'),
+('Moroccan'),
+('German'),
+('Brazilian'),
+('Caribbean'),
+('Ethiopian'),
+('Filipino'),
+('Peruvian'),
+('Middle Eastern'),
+('Southern'),
+('Tex-Mex'),
+('Fusion'),
+('Seafood'),
+('BBQ'),
+('Vegetarian'),
+('Polish');
 
 INSERT INTO ingredient (ingredient_name) VALUES
 ('flour'),
@@ -239,11 +261,27 @@ INSERT INTO review (rating, comment, user_id, recipe_id) VALUES
 (4, 'Good soup for cold days.', 19, 12),
 (5, 'Fresh and light.', 20, 13),
 (4, 'Classic breakfast option.', 22, 14),
-(5, 'Loved the kick of spice.', 24, 15);
+(5, 'Loved the spice.', 24, 15),
+(5, 'Rich and creamy.', 2, 16),
+(4, 'Very crispy.', 4, 17),
+(5, 'Great use of leftovers.', 6, 18),
+(4, 'Fresh basil smells fresh.', 9, 19),
+(5, 'Heathy and yummy.', 12, 20),
+(4, 'Simple side dish.', 14, 21),
+(5, 'Healthy and colorful.', 17, 22),
+(4, 'Soft eggs and nice texture.', 21, 23),
+(5, 'Excellent roasted flavor.', 23, 24),
+(4, 'Love the smoke flavor.', 25, 25),
+(5, 'Perfect curry.', 26, 26),
+(4, 'Cheesy and creamy.', 27, 27),
+(5, 'Great breakfast option.', 28, 28),
+(4, 'Balanced and budget friendly.', 29, 29),
+(5, 'Sweet and spicy.', 30, 30);
 
 INSERT INTO favorites (user_id, recipe_id) VALUES
 (1, 2), (1, 4), (2, 1), (3, 3), (4, 5), (5, 6), (6, 7), (7, 8), (8, 9), (9, 10),
-(10, 11), (11, 12), (12, 13), (13, 14), (14, 15), (15, 16), (16, 17), (17, 18), (18, 19), (19, 20);
+(10, 11), (11, 12), (12, 13), (13, 14), (14, 15), (15, 16), (16, 17), (17, 18), (18, 19), (19, 20),
+(20, 21), (21, 22), (22, 23), (23, 24), (24, 25), (25, 26), (26, 27), (27, 28), (28, 29), (29, 30);
 
 INSERT INTO recipe_has (recipe_id, tag_id) VALUES
 (1, 1), (1, 6),
@@ -334,4 +372,12 @@ SELECT 'ingredient', COUNT(*) FROM ingredient
 UNION ALL
 SELECT 'cuisine', COUNT(*) FROM cuisine
 UNION ALL
-SELECT 'review', COUNT(*) FROM review;
+SELECT 'review', COUNT(*) FROM review
+UNION ALL
+SELECT 'favorites', COUNT(*) FROM favorites
+UNION ALL
+SELECT 'recipe_has', COUNT(*) FROM recipe_has
+UNION ALL
+SELECT 'recipe_contains', COUNT(*) FROM recipe_contains
+UNION ALL
+SELECT 'user_ingredient', COUNT(*) FROM user_ingredient;
