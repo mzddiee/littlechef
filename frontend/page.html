@@ -349,6 +349,45 @@
       color: #f8fafc;
     }
 
+    .image-preview {
+      min-height: 120px;
+      border-radius: 12px;
+      border: 1px dashed rgba(255, 255, 255, 0.35);
+      background: rgba(255, 255, 255, 0.06);
+      display: grid;
+      place-items: center;
+      padding: 10px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .image-preview img,
+    .table-thumb {
+      display: block;
+      max-width: 100%;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    .image-preview img {
+      max-height: 200px;
+    }
+
+    .table-thumb {
+      width: 72px;
+      height: 72px;
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .table-thumb.empty {
+      display: grid;
+      place-items: center;
+      color: #38507a;
+      font-size: 12px;
+      text-align: center;
+      padding: 6px;
+    }
+
     @media (max-width: 980px) {
       .app-shell {
         grid-template-columns: 1fr;
@@ -402,7 +441,11 @@
         </button>
         <button data-panel="ingredients">
           Ingredients
-          <small id="count-ingredients">–</small>
+          <small id="count-ingredients">-</small>
+        </button>
+        <button data-panel="blogs">
+          Blog Posts
+          <small id="count-blogs">-</small>
         </button>
       </div>
     </aside>
@@ -422,6 +465,7 @@
             <button onclick="showPanel('cuisines'); loadCuisines();">Load Cuisines</button>
             <button onclick="showPanel('recipes'); loadRecipes();">Load Recipes</button>
             <button onclick="showPanel('ingredients'); loadIngredients();">Load Ingredients</button>
+            <button onclick="showPanel('blogs'); loadBlogPosts();">Load Blog Posts</button>
           </div>
         </div>
         <div class="metrics">
@@ -442,8 +486,13 @@
           </div>
           <div class="metric-card">
             <h3>Ingredients</h3>
-            <div class="metric-value" id="metric-ingredients">–</div>
+            <div class="metric-value" id="metric-ingredients">-</div>
             <div class="metric-foot">Pantry items</div>
+          </div>
+          <div class="metric-card">
+            <h3>Blog Posts</h3>
+            <div class="metric-value" id="metric-blogs">-</div>
+            <div class="metric-foot">Stories with images</div>
           </div>
         </div>
       </section>
@@ -601,6 +650,15 @@
               </div>
 
               <div class="form-row">
+                <input type="file" id="recipes-insert-image" accept="image/*" />
+                <button type="button" onclick="clearRecipeInsertImage()">Clear Image</button>
+              </div>
+
+              <div class="form-row">
+                <div id="recipes-insert-preview" class="image-preview">No image selected.</div>
+              </div>
+
+              <div class="form-row">
                 <button onclick="insertRecipe()">Insert</button>
               </div>
             </div>
@@ -622,6 +680,15 @@
 
               <div class="form-row">
                 <textarea id="recipes-update-instruction" placeholder="Instruction"></textarea>
+              </div>
+
+              <div class="form-row">
+                <input type="file" id="recipes-update-image" accept="image/*" />
+                <button type="button" onclick="clearRecipeUpdateImage()">Clear Image</button>
+              </div>
+
+              <div class="form-row">
+                <div id="recipes-update-preview" class="image-preview">No image selected.</div>
               </div>
 
               <div class="form-row">
@@ -648,6 +715,7 @@
                   <th>Status</th>
                   <th>User</th>
                   <th>Cuisine</th>
+                  <th>Image</th>
                   <th>Actions</th>
                 </tr>
               </thead>
@@ -708,6 +776,119 @@
             </table>
           </div>
         </section>
+
+        <section id="panel-blogs" class="panel">
+          <h2>Blog Posts</h2>
+          <div class="section-grid">
+            <div class="subsection">
+              <h3>Search Blog Posts</h3>
+              <div class="form-row">
+                <input type="text" id="blogs-search" placeholder="Enter blog title" />
+                <button onclick="loadBlogPosts()">Search</button>
+                <button onclick="resetBlogSearch()">Show All</button>
+              </div>
+            </div>
+
+            <div class="subsection">
+              <h3>Insert Blog Post</h3>
+              <div class="form-row">
+                <input type="text" id="blogs-insert-title" placeholder="Blog title" />
+                <select id="blogs-insert-status">
+                  <option value="">Select status</option>
+                  <option value="draft">draft</option>
+                  <option value="published">published</option>
+                  <option value="archived">archived</option>
+                </select>
+                <select id="blogs-insert-author-user-id">
+                  <option value="">Select author</option>
+                </select>
+                <select id="blogs-insert-recipe-id">
+                  <option value="">Optional recipe</option>
+                </select>
+              </div>
+
+              <div class="form-row">
+                <textarea id="blogs-insert-content" placeholder="Write the blog content"></textarea>
+              </div>
+
+              <div class="form-row">
+                <input type="file" id="blogs-insert-image" accept="image/*" />
+                <button type="button" onclick="clearBlogInsertImage()">Clear Image</button>
+              </div>
+
+              <div class="form-row">
+                <div id="blogs-insert-preview" class="image-preview">No image selected.</div>
+              </div>
+
+              <div class="form-row">
+                <button onclick="insertBlogPost()">Insert</button>
+              </div>
+            </div>
+
+            <div class="subsection">
+              <h3>Update Blog Post</h3>
+              <div class="form-row">
+                <input type="number" id="blogs-update-id" placeholder="Blog post ID" />
+                <input type="text" id="blogs-update-title" placeholder="Blog title" />
+                <select id="blogs-update-status">
+                  <option value="">Select status</option>
+                  <option value="draft">draft</option>
+                  <option value="published">published</option>
+                  <option value="archived">archived</option>
+                </select>
+                <select id="blogs-update-author-user-id">
+                  <option value="">Select author</option>
+                </select>
+                <select id="blogs-update-recipe-id">
+                  <option value="">Optional recipe</option>
+                </select>
+              </div>
+
+              <div class="form-row">
+                <textarea id="blogs-update-content" placeholder="Write the blog content"></textarea>
+              </div>
+
+              <div class="form-row">
+                <input type="file" id="blogs-update-image" accept="image/*" />
+                <button type="button" onclick="clearBlogUpdateImage()">Clear Image</button>
+              </div>
+
+              <div class="form-row">
+                <div id="blogs-update-preview" class="image-preview">No image selected.</div>
+              </div>
+
+              <div class="form-row">
+                <button onclick="updateBlogPost()">Update</button>
+                <button onclick="clearBlogUpdate()">Clear</button>
+              </div>
+            </div>
+
+            <div class="subsection">
+              <h3>Delete Blog Post</h3>
+              <div class="form-row">
+                <input type="number" id="blogs-delete-id" placeholder="Blog post ID" />
+                <button onclick="deleteBlogPost()">Delete</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Title</th>
+                  <th>Status</th>
+                  <th>Author</th>
+                  <th>Recipe</th>
+                  <th>Image</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="blogs-table"></tbody>
+            </table>
+          </div>
+        </section>
       </div>
     </main>
   </div>
@@ -737,11 +918,102 @@
       $(id).innerHTML = `<tr><td colspan="${c}">${t}</td></tr>`;
     };
 
+    const uploads = {
+      recipesInsert: { image_data: null, image_name: null },
+      recipesUpdate: { image_data: null, image_name: null },
+      blogsInsert: { image_data: null, image_name: null },
+      blogsUpdate: { image_data: null, image_name: null }
+    };
+
+    function renderImagePreview(targetId, imageData, label = 'Selected image preview') {
+      const target = $(targetId);
+
+      if (!imageData) {
+        target.textContent = 'No image selected.';
+        return;
+      }
+
+      target.innerHTML = `<img src="${imageData}" alt="${esc(label)}" />`;
+    }
+
+    function renderTableImage(imageData, imageName = 'Saved image') {
+      if (!imageData) {
+        return '<div class="table-thumb empty">No image</div>';
+      }
+
+      return `<img class="table-thumb" src="${imageData}" alt="${esc(imageName)}" />`;
+    }
+
+    function setUploadState(key, imageData = null, imageName = null) {
+      uploads[key].image_data = imageData;
+      uploads[key].image_name = imageName;
+    }
+
+    async function fileToDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('Unable to read the selected image.'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function handleImageInput(inputId, previewId, uploadKey, label) {
+      const file = $(inputId).files[0];
+
+      if (!file) {
+        setUploadState(uploadKey);
+        renderImagePreview(previewId, null);
+        return;
+      }
+
+      const imageData = await fileToDataUrl(file);
+      setUploadState(uploadKey, imageData, file.name);
+      renderImagePreview(previewId, imageData, label);
+    }
+
+    function clearImageInput(inputId, previewId, uploadKey) {
+      $(inputId).value = '';
+      setUploadState(uploadKey);
+      renderImagePreview(previewId, null);
+    }
+
+    function fillSelect(selectId, items, valueKey, labelKey, placeholder) {
+      const select = $(selectId);
+      const currentValue = select.value;
+      select.innerHTML = `<option value="">${placeholder}</option>`;
+
+      items.forEach((item) => {
+        select.innerHTML += `<option value="${item[valueKey]}">${esc(item[labelKey])}</option>`;
+      });
+
+      if (currentValue) {
+        select.value = currentValue;
+      }
+    }
+
+    async function loadBlogOptions() {
+      try {
+        const [users, recipes] = await Promise.all([
+          api(`${API}/users`),
+          api(`${API}/recipes`)
+        ]);
+
+        fillSelect('blogs-insert-author-user-id', users, 'user_id', 'username', 'Select author');
+        fillSelect('blogs-update-author-user-id', users, 'user_id', 'username', 'Select author');
+        fillSelect('blogs-insert-recipe-id', recipes, 'recipe_id', 'name', 'Optional recipe');
+        fillSelect('blogs-update-recipe-id', recipes, 'recipe_id', 'name', 'Optional recipe');
+      } catch (err) {
+        say('Could not load blog author and recipe choices yet.', true);
+      }
+    }
+
     const counts = {
       users: null,
       cuisines: null,
       recipes: null,
-      ingredients: null
+      ingredients: null,
+      blogs: null
     };
 
     const setCount = (key, value) => {
@@ -778,7 +1050,8 @@
       users: $('panel-users'),
       cuisines: $('panel-cuisines'),
       recipes: $('panel-recipes'),
-      ingredients: $('panel-ingredients')
+      ingredients: $('panel-ingredients'),
+      blogs: $('panel-blogs')
     };
 
     function showPanel(key) {
@@ -840,6 +1113,7 @@
             </tr>
           `;
         });
+        loadBlogOptions();
       } catch (err) {
         empty('users-table', 4, 'Failed to load users.');
         console.error(err);
@@ -1088,6 +1362,7 @@
       $('recipes-insert-status').value = '';
       $('recipes-insert-user-id').value = '';
       $('recipes-insert-cuisine-id').value = '';
+      clearImageInput('recipes-insert-image', 'recipes-insert-preview', 'recipesInsert');
     }
 
     function clearRecipeUpdate() {
@@ -1097,27 +1372,56 @@
       $('recipes-update-status').value = '';
       $('recipes-update-user-id').value = '';
       $('recipes-update-cuisine-id').value = '';
+      $('recipes-delete-id').value = '';
+      clearImageInput('recipes-update-image', 'recipes-update-preview', 'recipesUpdate');
+    }
+
+    function clearRecipeInsertImage() {
+      clearImageInput('recipes-insert-image', 'recipes-insert-preview', 'recipesInsert');
+    }
+
+    function clearRecipeUpdateImage() {
+      clearImageInput('recipes-update-image', 'recipes-update-preview', 'recipesUpdate');
     }
 
     function readRecipe(prefix) {
+      const key = prefix === 'insert' ? 'recipesInsert' : 'recipesUpdate';
       return {
         name: $(`recipes-${prefix}-name`).value.trim(),
         instruction: $(`recipes-${prefix}-instruction`).value.trim(),
         status: $(`recipes-${prefix}-status`).value,
         user_id: $(`recipes-${prefix}-user-id`).value.trim(),
-        cuisine_id: $(`recipes-${prefix}-cuisine-id`).value.trim()
+        cuisine_id: $(`recipes-${prefix}-cuisine-id`).value.trim(),
+        image_name: uploads[key].image_name,
+        image_data: uploads[key].image_data
       };
     }
 
-    function fillRecipeForm(id, name, instruction, status, userId, cuisineId) {
-      $('recipes-update-id').value = id;
-      $('recipes-update-name').value = name;
-      $('recipes-update-instruction').value = instruction;
-      $('recipes-update-status').value = status;
-      $('recipes-update-user-id').value = userId;
-      $('recipes-update-cuisine-id').value = cuisineId;
-      $('recipes-delete-id').value = id;
-      say(`Loaded recipe #${id} into the update form.`);
+    function getMissingRecipeFields(payload) {
+      const missing = [];
+
+      if (!payload.name) missing.push('recipe name');
+      if (!payload.instruction) missing.push('instruction');
+      if (!payload.status) missing.push('status');
+      if (!payload.user_id) missing.push('user ID');
+      if (!payload.cuisine_id) missing.push('cuisine ID');
+
+      return missing;
+    }
+
+    function fillRecipeForm(encodedItem) {
+      const item = JSON.parse(decodeURIComponent(encodedItem));
+      $('recipes-update-id').value = item.recipe_id;
+      $('recipes-update-name').value = item.name;
+      $('recipes-update-instruction').value = item.instruction;
+      $('recipes-update-status').value = item.status;
+      $('recipes-update-user-id').value = item.user_id;
+      $('recipes-update-cuisine-id').value = item.cuisine_id;
+      $('recipes-delete-id').value = item.recipe_id;
+      setUploadState('recipesUpdate', item.image_data || null, item.image_name || null);
+      $('recipes-update-image').value = '';
+      renderImagePreview('recipes-update-preview', item.image_data, item.image_name || `${item.name} image`);
+      say(`Loaded recipe #${item.recipe_id} into the update form.`);
     }
 
     async function loadRecipes() {
@@ -1130,7 +1434,7 @@
         $('recipes-table').innerHTML = '';
 
         if (!data.length) {
-          empty('recipes-table', 6, 'No recipes found.');
+          empty('recipes-table', 7, 'No recipes found.');
           setCount('recipes', 0);
           return;
         }
@@ -1145,8 +1449,9 @@
               <td>${esc(item.status)}</td>
               <td>${esc(item.username)}</td>
               <td>${esc(item.cuisine_name)}</td>
+              <td>${renderTableImage(item.image_data, item.image_name || `${item.name} image`)}</td>
               <td class="action-cell">
-                <button onclick="fillRecipeForm(${item.recipe_id}, ${JSON.stringify(item.name)}, ${JSON.stringify(item.instruction)}, ${JSON.stringify(item.status)}, ${item.user_id}, ${item.cuisine_id})">
+                <button onclick="fillRecipeForm('${encodeURIComponent(JSON.stringify(item))}')">
                   Edit
                 </button>
                 <button onclick="deleteRecipe(${item.recipe_id})">Delete</button>
@@ -1154,8 +1459,9 @@
             </tr>
           `;
         });
+        loadBlogOptions();
       } catch (err) {
-        empty('recipes-table', 6, 'Failed to load recipes.');
+        empty('recipes-table', 7, 'Failed to load recipes.');
         console.error(err);
       }
     }
@@ -1168,15 +1474,10 @@
     async function insertRecipe() {
       try {
         const payload = readRecipe('insert');
+        const missing = getMissingRecipeFields(payload);
 
-        if (
-          !payload.name ||
-          !payload.instruction ||
-          !payload.status ||
-          !payload.user_id ||
-          !payload.cuisine_id
-        ) {
-          say('Please complete all recipe insert fields.', true);
+        if (missing.length) {
+          say(`Recipe not inserted. Missing: ${missing.join(', ')}.`, true);
           return;
         }
 
@@ -1406,16 +1707,239 @@
       }
     }
 
+    function clearBlogInsert() {
+      $('blogs-insert-title').value = '';
+      $('blogs-insert-content').value = '';
+      $('blogs-insert-status').value = '';
+      $('blogs-insert-author-user-id').value = '';
+      $('blogs-insert-recipe-id').value = '';
+      clearImageInput('blogs-insert-image', 'blogs-insert-preview', 'blogsInsert');
+    }
+
+    function clearBlogUpdate() {
+      $('blogs-update-id').value = '';
+      $('blogs-update-title').value = '';
+      $('blogs-update-content').value = '';
+      $('blogs-update-status').value = '';
+      $('blogs-update-author-user-id').value = '';
+      $('blogs-update-recipe-id').value = '';
+      $('blogs-delete-id').value = '';
+      clearImageInput('blogs-update-image', 'blogs-update-preview', 'blogsUpdate');
+    }
+
+    function clearBlogInsertImage() {
+      clearImageInput('blogs-insert-image', 'blogs-insert-preview', 'blogsInsert');
+    }
+
+    function clearBlogUpdateImage() {
+      clearImageInput('blogs-update-image', 'blogs-update-preview', 'blogsUpdate');
+    }
+
+    function readBlog(prefix) {
+      const key = prefix === 'insert' ? 'blogsInsert' : 'blogsUpdate';
+      return {
+        title: $(`blogs-${prefix}-title`).value.trim(),
+        content: $(`blogs-${prefix}-content`).value.trim(),
+        status: $(`blogs-${prefix}-status`).value,
+        author_user_id: $(`blogs-${prefix}-author-user-id`).value,
+        recipe_id: $(`blogs-${prefix}-recipe-id`).value || null,
+        image_name: uploads[key].image_name,
+        image_data: uploads[key].image_data
+      };
+    }
+
+    function getMissingBlogFields(payload) {
+      const missing = [];
+
+      if (!payload.title) missing.push('blog title');
+      if (!payload.content) missing.push('content');
+      if (!payload.status) missing.push('status');
+      if (!payload.author_user_id) missing.push('author');
+
+      return missing;
+    }
+
+    function fillBlogForm(encodedItem) {
+      const item = JSON.parse(decodeURIComponent(encodedItem));
+      $('blogs-update-id').value = item.blog_post_id;
+      $('blogs-update-title').value = item.title;
+      $('blogs-update-content').value = item.content;
+      $('blogs-update-status').value = item.status;
+      $('blogs-update-author-user-id').value = item.author_user_id;
+      $('blogs-update-recipe-id').value = item.recipe_id || '';
+      $('blogs-delete-id').value = item.blog_post_id;
+      setUploadState('blogsUpdate', item.image_data || null, item.image_name || null);
+      $('blogs-update-image').value = '';
+      renderImagePreview('blogs-update-preview', item.image_data, item.image_name || `${item.title} image`);
+      say(`Loaded blog post #${item.blog_post_id} into the update form.`);
+    }
+
+    async function loadBlogPosts() {
+      try {
+        const q = $('blogs-search').value.trim();
+        const data = await api(
+          `${API}/blog-posts${q ? `?title=${encodeURIComponent(q)}` : ''}`
+        );
+
+        $('blogs-table').innerHTML = '';
+
+        if (!data.length) {
+          empty('blogs-table', 7, 'No blog posts found.');
+          setCount('blogs', 0);
+          return;
+        }
+
+        setCount('blogs', data.length);
+
+        data.forEach((item) => {
+          $('blogs-table').innerHTML += `
+            <tr>
+              <td>${item.blog_post_id}</td>
+              <td>${esc(item.title)}</td>
+              <td>${esc(item.status)}</td>
+              <td>${esc(item.author_username)}</td>
+              <td>${esc(item.recipe_name || '-')}</td>
+              <td>${renderTableImage(item.image_data, item.image_name || `${item.title} image`)}</td>
+              <td class="action-cell">
+                <button onclick="fillBlogForm('${encodeURIComponent(JSON.stringify(item))}')">
+                  Edit
+                </button>
+                <button onclick="deleteBlogPost(${item.blog_post_id})">Delete</button>
+              </td>
+            </tr>
+          `;
+        });
+      } catch (err) {
+        empty('blogs-table', 7, 'Failed to load blog posts.');
+        console.error(err);
+      }
+    }
+
+    function resetBlogSearch() {
+      $('blogs-search').value = '';
+      loadBlogPosts();
+    }
+
+    async function insertBlogPost() {
+      try {
+        const payload = readBlog('insert');
+        const missing = getMissingBlogFields(payload);
+
+        if (missing.length) {
+          say(`Blog post not inserted. Missing: ${missing.join(', ')}.`, true);
+          return;
+        }
+
+        await api(`${API}/blog-posts`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        clearBlogInsert();
+        say('Blog post inserted successfully.');
+        loadBlogPosts();
+      } catch (err) {
+        say(err.message, true);
+      }
+    }
+
+    async function updateBlogPost() {
+      try {
+        const id = $('blogs-update-id').value.trim();
+        const payload = readBlog('update');
+
+        if (!id || !payload.title || !payload.content || !payload.status || !payload.author_user_id) {
+          say('Please complete all blog post update fields.', true);
+          return;
+        }
+
+        const result = await api(`${API}/blog-posts/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (result.affectedRows === 0) {
+          say('No blog post was updated. Check the post ID.', true);
+          return;
+        }
+
+        clearBlogUpdate();
+        say('Blog post updated successfully.');
+        loadBlogPosts();
+      } catch (err) {
+        say(err.message, true);
+      }
+    }
+
+    async function deleteBlogPost(selectedId) {
+      try {
+        const id = String(selectedId || $('blogs-delete-id').value).trim();
+
+        if (!id) {
+          say('Please enter a blog post ID to delete.', true);
+          return;
+        }
+
+        if (!window.confirm(`Delete blog post ID ${id}?`)) {
+          return;
+        }
+
+        const result = await api(`${API}/blog-posts/${id}`, {
+          method: 'DELETE'
+        });
+
+        if (result.affectedRows === 0) {
+          say('No blog post was deleted. Check the post ID.', true);
+          return;
+        }
+
+        $('blogs-delete-id').value = '';
+
+        if ($('blogs-update-id').value === id) {
+          clearBlogUpdate();
+        }
+
+        say('Blog post deleted successfully.');
+        loadBlogPosts();
+      } catch (err) {
+        say(err.message, true);
+      }
+    }
+
+    $('recipes-insert-image').addEventListener('change', () =>
+      handleImageInput('recipes-insert-image', 'recipes-insert-preview', 'recipesInsert', 'Recipe image preview')
+    );
+    $('recipes-update-image').addEventListener('change', () =>
+      handleImageInput('recipes-update-image', 'recipes-update-preview', 'recipesUpdate', 'Recipe image preview')
+    );
+    $('blogs-insert-image').addEventListener('change', () =>
+      handleImageInput('blogs-insert-image', 'blogs-insert-preview', 'blogsInsert', 'Blog image preview')
+    );
+    $('blogs-update-image').addEventListener('change', () =>
+      handleImageInput('blogs-update-image', 'blogs-update-preview', 'blogsUpdate', 'Blog image preview')
+    );
+
     onEnter('users-search', loadUsers);
     onEnter('cuisines-search', loadCuisines);
     onEnter('recipes-search', loadRecipes);
     onEnter('ingredients-search', loadIngredients);
+    onEnter('blogs-search', loadBlogPosts);
+
+    clearRecipeInsert();
+    clearRecipeUpdate();
+    clearBlogInsert();
+    clearBlogUpdate();
+    loadBlogOptions();
 
     empty('users-table', 4, 'Click Show All or Search to load users.');
     empty('cuisines-table', 3, 'Click Show All or Search to load cuisines.');
-    empty('recipes-table', 6, 'Click Show All or Search to load recipes.');
+    empty('recipes-table', 7, 'Click Show All or Search to load recipes.');
     empty('ingredients-table', 3, 'Click Show All or Search to load ingredients.');
+    empty('blogs-table', 7, 'Click Show All or Search to load blog posts.');
   </script>
 </body>
 
 </html>
+

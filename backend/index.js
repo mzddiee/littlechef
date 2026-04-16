@@ -5,7 +5,14 @@ const pool = require('./db');
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+
+function normalizeUploadPayload(body) {
+  return {
+    image_name: body.image_name || null,
+    image_data: body.image_data || null
+  };
+}
 
 // test connection
 app.get('/test-db', async (req, res) => {
@@ -96,6 +103,8 @@ app.get('/recipes', async (req, res) => {
         recipe.status,
         recipe.user_id,
         recipe.cuisine_id,
+        recipe.image_name,
+        recipe.image_data,
         users.username,
         cuisine.cuisine_name
       FROM recipe
@@ -121,9 +130,10 @@ app.get('/recipes', async (req, res) => {
 app.post('/recipes', async (req, res) => {
   try {
     const { name, instruction, status, user_id, cuisine_id } = req.body;
+    const { image_name, image_data } = normalizeUploadPayload(req.body);
     const [result] = await pool.execute(
-      'INSERT INTO recipe (name, instruction, status, user_id, cuisine_id) VALUES (?, ?, ?, ?, ?)',
-      [name, instruction, status, user_id, cuisine_id]
+      'INSERT INTO recipe (name, instruction, status, user_id, cuisine_id, image_name, image_data) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [name, instruction, status, user_id, cuisine_id, image_name, image_data]
     );
     res.json({ message: 'Inserted', insertId: result.insertId });
   } catch (error) {
@@ -135,9 +145,10 @@ app.put('/recipes/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { name, instruction, status, user_id, cuisine_id } = req.body;
+    const { image_name, image_data } = normalizeUploadPayload(req.body);
     const [result] = await pool.execute(
-      'UPDATE recipe SET name = ?, instruction = ?, status = ?, user_id = ?, cuisine_id = ? WHERE recipe_id = ?',
-      [name, instruction, status, user_id, cuisine_id, id]
+      'UPDATE recipe SET name = ?, instruction = ?, status = ?, user_id = ?, cuisine_id = ?, image_name = ?, image_data = ? WHERE recipe_id = ?',
+      [name, instruction, status, user_id, cuisine_id, image_name, image_data, id]
     );
     res.json({ message: 'Updated', affectedRows: result.affectedRows });
   } catch (error) {
@@ -152,6 +163,109 @@ app.delete('/recipes/:id', async (req, res) => {
       'DELETE FROM recipe WHERE recipe_id = ?',
       [id]
     );
+    res.json({ message: 'Deleted', affectedRows: result.affectedRows });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/blog-posts', async (req, res) => {
+  try {
+    const { title } = req.query;
+    let sql = `
+      SELECT
+        blog_post.blog_post_id,
+        blog_post.title,
+        blog_post.content,
+        blog_post.status,
+        blog_post.author_user_id,
+        blog_post.recipe_id,
+        blog_post.image_name,
+        blog_post.image_data,
+        blog_post.created_at,
+        blog_post.updated_at,
+        users.username AS author_username,
+        recipe.name AS recipe_name
+      FROM blog_post
+      JOIN users ON blog_post.author_user_id = users.user_id
+      LEFT JOIN recipe ON blog_post.recipe_id = recipe.recipe_id
+    `;
+    const params = [];
+
+    if (title) {
+      sql += ' WHERE blog_post.title LIKE ?';
+      params.push(`%${title}%`);
+    }
+
+    sql += ' ORDER BY blog_post.blog_post_id DESC';
+
+    const [rows] = await pool.execute(sql, params);
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/blog-posts', async (req, res) => {
+  try {
+    const { title, content, status, author_user_id, recipe_id } = req.body;
+    const { image_name, image_data } = normalizeUploadPayload(req.body);
+    const [result] = await pool.execute(
+      `INSERT INTO blog_post
+       (title, content, status, author_user_id, recipe_id, image_name, image_data)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        title,
+        content,
+        status,
+        author_user_id,
+        recipe_id || null,
+        image_name,
+        image_data
+      ]
+    );
+
+    res.json({ message: 'Inserted', insertId: result.insertId });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/blog-posts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { title, content, status, author_user_id, recipe_id } = req.body;
+    const { image_name, image_data } = normalizeUploadPayload(req.body);
+    const [result] = await pool.execute(
+      `UPDATE blog_post
+       SET title = ?, content = ?, status = ?, author_user_id = ?, recipe_id = ?, image_name = ?, image_data = ?
+       WHERE blog_post_id = ?`,
+      [
+        title,
+        content,
+        status,
+        author_user_id,
+        recipe_id || null,
+        image_name,
+        image_data,
+        id
+      ]
+    );
+
+    res.json({ message: 'Updated', affectedRows: result.affectedRows });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/blog-posts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [result] = await pool.execute(
+      'DELETE FROM blog_post WHERE blog_post_id = ?',
+      [id]
+    );
+
     res.json({ message: 'Deleted', affectedRows: result.affectedRows });
   } catch (error) {
     res.status(500).json({ error: error.message });
