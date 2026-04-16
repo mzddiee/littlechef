@@ -20,6 +20,8 @@ CREATE TABLE recipe (
     status ENUM('in-progress', 'published', 'archived') NOT NULL,
     user_id INT NOT NULL,
     cuisine_id INT NOT NULL,
+    image_name VARCHAR(255),
+    image_data LONGTEXT,
     CONSTRAINT fk_recipe_user
         FOREIGN KEY (user_id) REFERENCES users(user_id),
     CONSTRAINT fk_recipe_cuisine
@@ -98,6 +100,23 @@ CREATE TABLE user_ingredient (
         FOREIGN KEY (user_id) REFERENCES users(user_id),
     CONSTRAINT fk_user_ingredient_ingredient
         FOREIGN KEY (ingredient_id) REFERENCES ingredient(ingredient_id)
+);
+
+CREATE TABLE blog_post (
+    blog_post_id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(150) NOT NULL,
+    content TEXT NOT NULL,
+    status ENUM('draft', 'published', 'archived') NOT NULL DEFAULT 'draft',
+    author_user_id INT NOT NULL,
+    recipe_id INT,
+    image_name VARCHAR(255),
+    image_data LONGTEXT,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_blog_post_author
+        FOREIGN KEY (author_user_id) REFERENCES users(user_id),
+    CONSTRAINT fk_blog_post_recipe
+        FOREIGN KEY (recipe_id) REFERENCES recipe(recipe_id)
 );
 
 INSERT INTO users (username, role) VALUES
