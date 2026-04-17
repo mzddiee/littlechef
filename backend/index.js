@@ -114,6 +114,85 @@ app.delete('/cuisines/:id', async (req, res) => {
   }
 });
 
+app.get('/reviews', async (req, res) => {
+  try {
+    const { recipe_id } = req.query;
+    let sql = `
+      SELECT r.review_id, r.rating, r.comment, r.user_id, r.recipe_id,
+             u.username, rec.name AS recipe_name
+      FROM review r
+      JOIN users u ON r.user_id = u.user_id
+      JOIN recipe rec ON r.recipe_id = rec.recipe_id
+    `;
+    const params = [];
+    if (recipe_id) {
+      sql += ' WHERE r.recipe_id = ?';
+      params.push(recipe_id);
+    }
+    sql += ' ORDER BY r.review_id DESC';
+    const [rows] = await pool.execute(sql, params);
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/reviews', async (req, res) => {
+  try {
+    const { rating, comment, user_id, recipe_id } = req.body;
+    const [result] = await pool.execute(
+      'INSERT INTO review (rating, comment, user_id, recipe_id) VALUES (?, ?, ?, ?)',
+      [rating, comment || null, user_id, recipe_id]
+    );
+    res.json({ message: 'Review inserted', insertId: result.insertId });
+  } catch (error) {
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({ error: 'This user has already reviewed this recipe.' });
+    }
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.put('/reviews/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rating, comment } = req.body;
+    const [result] = await pool.execute(
+      'UPDATE review SET rating = ?, comment = ? WHERE review_id = ?',
+      [rating, comment || null, id]
+    );
+    res.json({ message: 'Review updated', affectedRows: result.affectedRows });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/reviews/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const [result] = await pool.execute(
+      'DELETE FROM review WHERE review_id = ?', [id]
+    );
+    res.json({ message: 'Review deleted', affectedRows: result.affectedRows });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/reviews/avg/:recipe_id', async (req, res) => {
+  try {
+    const { recipe_id } = req.params;
+    const [rows] = await pool.execute(
+      `SELECT COUNT(*) AS total_reviews, ROUND(AVG(rating), 1) AS avg_rating
+       FROM review WHERE recipe_id = ?`,
+      [recipe_id]
+    );
+    res.json(rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 const port = process.env.PORT || 3001;
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
