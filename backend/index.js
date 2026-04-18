@@ -1,4 +1,4 @@
-//require('dotenv').config();
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const pool = require('./db');
@@ -154,6 +154,62 @@ app.delete('/recipes/:id', async (req, res) => {
       [id]
     );
     res.json({ message: 'Deleted', affectedRows: result.affectedRows });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/favorites', async (req, res) => {
+  try {
+    const [rows] = await pool.query(`
+      SELECT 
+        f.user_id,
+        u.username,
+        f.recipe_id,
+        r.name AS recipe_name
+      FROM favorites f
+      JOIN users u ON f.user_id = u.user_id
+      JOIN recipe r ON f.recipe_id = r.recipe_id
+      ORDER BY f.user_id
+    `);
+
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/favorites', async (req, res) => {
+  try {
+    const { user_id, recipe_id } = req.body;
+
+    const [result] = await pool.execute(
+      'INSERT INTO favorites (user_id, recipe_id) VALUES (?, ?)',
+      [user_id, recipe_id]
+    );
+
+    res.json({
+      message: 'Favorite added',
+      insertId: result.insertId
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.delete('/favorites', async (req, res) => {
+  try {
+    const { user_id, recipe_id } = req.body;
+
+    const [result] = await pool.execute(
+      'DELETE FROM favorites WHERE user_id = ? AND recipe_id = ?',
+      [user_id, recipe_id]
+    );
+
+    res.json({
+      message: 'Favorite removed',
+      affectedRows: result.affectedRows
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

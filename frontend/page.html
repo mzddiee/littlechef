@@ -408,6 +408,10 @@
           Reviews
           <small id="count-reviews">–</small>
         </button>
+        <button data-panel="favorites">
+          Favorites
+          <small id="count-favorites">–</small>
+        </button>
       </div>
     </aside>
 
@@ -427,6 +431,7 @@
             <button onclick="showPanel('recipes'); loadRecipes();">Load Recipes</button>
             <button onclick="showPanel('ingredients'); loadIngredients();">Load Ingredients</button>
             <button onclick="showPanel('reviews'); loadReviews();">Load Reviews</button>
+            <button onclick="showPanel('favorites'); loadFavorites();">Load Favorites</button>
           </div>
         </div>
         <div class="metrics">
@@ -454,6 +459,11 @@
             <h3>Reviews</h3>
             <div class="metric-value" id="metric-reviews">–</div>
             <div class="metric-foot">Ratings submitted</div>
+          </div>
+          <div class="metric-card">
+            <h3>Favorites</h3>
+            <div class="metric-value" id="metric-favorites">–</div>
+            <div class="metric-foot">Saved pairs</div>
           </div>
         </div>
       </section>
@@ -777,7 +787,6 @@
                 <button onclick="deleteReview()">Delete</button>
               </div>
             </div>
-
           </div>
 
           <div class="table-wrap">
@@ -796,6 +805,47 @@
             </table>
           </div>
         </section>
+
+        <section id="panel-favorites" class="panel">
+          <h2>Favorites</h2>
+
+          <div class="section-grid">
+
+            <div class="subsection">
+              <h3>Add Favorite</h3>
+              <div class="form-row">
+                <input type="number" id="favorites-user-id" placeholder="User ID" />
+                <input type="number" id="favorites-recipe-id" placeholder="Recipe ID" />
+                <button onclick="addFavorite()">Add</button>
+              </div>
+            </div>
+
+            <div class="subsection">
+              <h3>Remove Favorite</h3>
+              <div class="form-row">
+                <input type="number" id="favorites-user-id-del" placeholder="User ID" />
+                <input type="number" id="favorites-recipe-id-del" placeholder="Recipe ID" />
+                <button onclick="deleteFavorite()">Remove</button>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>User ID</th>
+                  <th>Username</th>
+                  <th>Recipe ID</th>
+                  <th>Recipe Name</th>
+                </tr>
+              </thead>
+              <tbody id="favorites-table"></tbody>
+            </table>
+          </div>
+        </section>
+
       </div>
     </main>
   </div>
@@ -868,7 +918,8 @@
       cuisines: $('panel-cuisines'),
       recipes: $('panel-recipes'),
       ingredients: $('panel-ingredients'),
-      reviews: $('panel-reviews')
+      reviews: $('panel-reviews'),
+      favorites: $('panel-favorites')
     };
 
     function showPanel(key) {
@@ -1506,6 +1557,7 @@
     empty('recipes-table', 6, 'Click Show All or Search to load recipes.');
     empty('ingredients-table', 3, 'Click Show All or Search to load ingredients.');
     empty('reviews-table', 6, 'Click Show All or Search to load reviews.');
+    empty('favorites-table', 2, 'Click Load Favorites to view data.');
 
     function clearReviewUpdate() {
       $('reviews-update-id').value = '';
@@ -1666,6 +1718,91 @@
 
         say('Review deleted.');
         loadReviews();
+      } catch (err) {
+        say(err.message, true);
+      }
+    }
+
+    async function loadFavorites() {
+      try {
+        const data = await api(`${API}/favorites`);
+
+        $('favorites-table').innerHTML = '';
+
+        if (!data.length) {
+          empty('favorites-table', 4, 'No favorites found.');
+          setCount('favorites', 0);
+          return;
+        }
+
+        setCount('favorites', data.length);
+
+        data.forEach(fav => {
+          $('favorites-table').innerHTML += `
+            <tr>
+              <td>${fav.user_id}</td>
+              <td>${esc(fav.username)}</td>
+              <td>${fav.recipe_id}</td>
+              <td>${esc(fav.recipe_name)}</td>
+            </tr>
+          `;
+        });
+
+      } catch (err) {
+        empty('favorites-table', 4, 'Failed to load favorites.');
+        console.error(err);
+      }
+    }
+
+    async function addFavorite() {
+      try {
+        const user_id = $('favorites-user-id').value.trim();
+        const recipe_id = $('favorites-recipe-id').value.trim();
+
+        if (!user_id || !recipe_id) {
+          say('Enter both User ID and Recipe ID.', true);
+          return;
+        }
+
+        await api(`${API}/favorites`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id, recipe_id })
+        });
+
+        $('favorites-user-id').value = '';
+        $('favorites-recipe-id').value = '';
+
+        say('Favorite added successfully.');
+        loadFavorites();
+
+      } catch (err) {
+        say(err.message, true);
+      }
+    }
+
+    async function deleteFavorite() {
+      try {
+        const user_id = $('favorites-user-id-del').value.trim();
+        const recipe_id = $('favorites-recipe-id-del').value.trim();
+
+        if (!user_id || !recipe_id) {
+          say('Enter both User ID and Recipe ID.', true);
+          return;
+        }
+
+        await api(`${API}/favorites`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id, recipe_id })
+        });
+
+        $('favorites-user-id-del').value = '';
+        $('favorites-recipe-id-del').value = '';
+
+        say('Favorite removed.');
+        loadFavorites();
+
       } catch (err) {
         say(err.message, true);
       }
